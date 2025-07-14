@@ -1,0 +1,41 @@
+version: '3.8'
+
+networks:
+  my-mixnet-dev-net:
+    driver: bridge
+
+services:
+  node1:
+    build: .
+    container_name: mixnode-1
+    hostname: mixnode-1
+    ports:
+      - "8000:8000"
+    networks:
+      - my-mixnet-dev-net
+    stdin_open: true
+    tty: true
+
+  node2:
+    build: .
+    container_name: clientnode-2
+    hostname: clientnode-2
+    ports:
+      - "8001:8000"
+    networks:
+      - my-mixnet-dev-net
+    command: java -jar Peer2Peer-1.0-SNAPSHOT.jar CONNECT_TO mixnode-1 8000
+    stdin_open: true
+    tty: true
+
+  clientnode-3:
+    build: .
+    container_name: clientnode-3
+    hostname: clientnode-3
+    ports:
+      - "8003:8000"
+    networks:
+      - my-mixnet-dev-net
+    command: java -jar Peer2Peer-1.0-SNAPSHOT.jar CONNECT_TO mixnode-1 8000
+    stdin_open: true
+    tty: true
