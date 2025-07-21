@@ -86,7 +86,6 @@ public abstract class PeerManager {
         Logger.log("Peer successfully added", LogLevel.Info);
     }
 
-    // Removes a peer from the active list (called from Peer.run() on disconnect)
     public void removePeer(String remoteNodeId) {
         activePeers.remove(remoteNodeId);
         Logger.log("Peer removed. Total active peers: " + activePeers.size(), LogLevel.Info);

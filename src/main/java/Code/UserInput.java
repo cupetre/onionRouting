@@ -8,8 +8,8 @@ import java.util.Scanner;
 
 public class UserInput extends Thread {
 
-    private final ClientNode clientNode; // Reference to PeerManager for sending messages
-    private volatile boolean running = true; // Flag for graceful shutdown
+    private final ClientNode clientNode;
+    private volatile boolean running = true;
 
     public UserInput(ClientNode clientNode) {
         this.clientNode = clientNode;
@@ -56,7 +56,7 @@ public class UserInput extends Thread {
                 Logger.log("Problem sending message: " + e.getMessage(), LogLevel.Error);
             }
         }
-        scanner.close(); // Close scanner when done
+        scanner.close();
     }
 
     public void shutdown() {

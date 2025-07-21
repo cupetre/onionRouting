@@ -34,7 +34,7 @@ public class Main {
         }
 
         String nodeId = args[0];
-        String nodeType = args[1]; // "Client", "Mix", or "Destination"
+        String nodeType = args[1];
 
         NodeConfig thisNodeConfig = allNetworkNodes.get(nodeId);
         if (thisNodeConfig == null) {
@@ -42,14 +42,12 @@ public class Main {
             return;
         }
 
-        AbstractNode currentNode = null; // Use AbstractNode as the common type
+        AbstractNode currentNode = null;
 
         try {
             switch (nodeType.toLowerCase()) {
                 case "client":
-                    // Client needs to know its path (e.g., via MixNode_Alpha to BobDestination)
-                    // For this simple example, Client -> MixNode_Alpha -> BobDestination
-                    List<String> clientPath = Arrays.asList("MixNode_Alpha"); // Only one mix for now
+                    List<String> clientPath = Arrays.asList("MixNode_Alpha");
                     String clientDestination = "BobDestination";
                     currentNode = new ClientNode(thisNodeConfig.getId(), thisNodeConfig.getPort(), allNetworkNodes, clientPath, clientDestination);
                     break;
@@ -65,9 +63,8 @@ public class Main {
             }
 
             if (currentNode != null) {
-                currentNode.start(); // Start the node's server and any internal logic
+                currentNode.start();
 
-                // If it's a client node, start the UserInput thread
                 if (nodeType.equalsIgnoreCase("client")) {
                     UserInput userInput = new UserInput((ClientNode) currentNode);
                     userInput.start(); // Start the UserInput thread
@@ -75,8 +72,7 @@ public class Main {
                     Runtime.getRuntime().addShutdownHook(new Thread(userInput::shutdown));
                 }
 
-                // Register shutdown hook for the current node (PeerManager/AbstractNode)
-                AbstractNode finalCurrentNode = currentNode; // Need final variable for lambda
+                AbstractNode finalCurrentNode = currentNode;
                 Runtime.getRuntime().addShutdownHook(new Thread(finalCurrentNode::shutdown));
 
                 Logger.log("Node '" + nodeId + "' of type '" + nodeType + "' is running.", LogLevel.Info);

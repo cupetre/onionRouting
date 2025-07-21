@@ -24,17 +24,15 @@ public class ClientNode extends AbstractNode {
 
         String firstHopId;
         if (defaultMixPath != null && !defaultMixPath.isEmpty()) {
-            firstHopId = defaultMixPath.get(0); // Send to the first mix node
+            firstHopId = defaultMixPath.get(0); // first to the mix
             Logger.log("Preparing to send message via first mix: " + firstHopId, LogLevel.Info);
         } else {
-            firstHopId = targetDestinationId; // Send directly to destination if no mixes in path
+            firstHopId = targetDestinationId; // send em directly to destination if no mixes in path
             Logger.log("Preparing to send message directly to destination: " + firstHopId, LogLevel.Info);
         }
 
-        // The message itself carries the final destination ID
         Message messageToSend = new Message(content, targetDestinationId);
 
-        // Use the sendMessageToNode helper from AbstractNode
         sendMessageToNode(firstHopId, messageToSend);
     }
 

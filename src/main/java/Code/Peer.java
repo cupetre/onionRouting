@@ -59,8 +59,9 @@ public class Peer implements Runnable {
             return;
         }
 
+        // dont forget to change message za cont + id path
         try {
-            writer.write(message.toString()); // content
+            writer.write(message.getContent() + "|" + message.getNextHopID()); // fakto deka stv zaboraj
             writer.newLine(); // new chars in line
             writer.flush(); // clear flush for buffer
             Logger.log("Message sent to " + getRemoteNodeId() + " : " + message.toString() + " \" ", LogLevel.Info);
@@ -72,10 +73,9 @@ public class Peer implements Runnable {
     }
 
     public void shutdownPeer() {
-        this.connected = false; // Signal the run() loop to terminate
+        this.connected = false; // prekinuva
         try {
             if (socket != null && !socket.isClosed()) {
-                // Closing input/output streams individually can unblock read/write calls
                 socket.shutdownInput();
                 socket.shutdownOutput();
                 socket.close(); // Close the socket
@@ -91,13 +91,12 @@ public class Peer implements Runnable {
         Thread.currentThread().setName("PeerHandler-" + peerManager.nodeIdentifier + " - " +getRemoteNodeId());
         Logger.log("Peer handler is started for node: " + getRemoteNodeId() + " as " + getRemoteAddress(), LogLevel.Status);
 
-        try { // Outer try block starts here
-            while (connected) { // Loop condition relies on 'connected' flag
-                String rawMessageLine = waitForMessage(); // (1) Blocks here, waiting for a message
+        try {
+            while (connected) {
+                String rawMessageLine = waitForMessage(); // // this is where we activate the blocking queue
                 if (rawMessageLine == null) {
-                    // (2) This path is taken if waitForMessage() returns null (connection closed/error)
                     Logger.log("Peer " + getRemoteNodeId() + " disconnected or error reading. Stopping handler.", LogLevel.Warn);
-                    break; // Exit the while loop
+                    break;
                 }
 
                 String[] parts = rawMessageLine.split("\\|", 2);
@@ -114,13 +113,12 @@ public class Peer implements Runnable {
                 peerManager.processReceivedMessage(message, this);
             }
         } catch (IllegalArgumentException e) {
-            // (4) This path is taken if the Message constructor throws an IOException
             Logger.log("Protocol error parsing message from " + getRemoteNodeId() + ": " + e.getMessage(), LogLevel.Error);
-        } finally { // (7) This finally block executes AFTER the outer try block finishes
+        } finally {
             Logger.log("Cleaning up connection for peer " + getRemoteAddress() + " as " + getRemoteNodeId(), LogLevel.Info);
-            peerManager.removePeer(getRemoteNodeId()); // Remove from PeerManager's list
+            peerManager.removePeer(getRemoteNodeId());
 
-            try { // Inner try-catch for resource closing itself
+            try {
                 if (reader != null) reader.close();
                 if (writer != null) writer.close();
                 if (socket != null && !socket.isClosed()) socket.close();
