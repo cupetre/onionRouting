@@ -12,7 +12,6 @@ services:
     hostname: destination-bob
     networks:
       - my-mixnet-dev-net
-    # Command: java -jar app.jar <node_id> <node_type>
     command: java -jar Peer2Peer-1.0-SNAPSHOT.jar BobDestination Destination
     logging:
       driver: "json-file"
@@ -27,7 +26,6 @@ services:
     hostname: mixnode-alpha
     networks:
       - my-mixnet-dev-net
-    # Command: java -jar app.jar <node_id> <node_type>
     command: java -jar Peer2Peer-1.0-SNAPSHOT.jar MixNode_Alpha Mix
     logging:
       driver: "json-file"
@@ -42,7 +40,6 @@ services:
     hostname: client-a
     networks:
       - my-mixnet-dev-net
-    # Command: java -jar app.jar <node_id> <node_type>
     command: java -jar Peer2Peer-1.0-SNAPSHOT.jar AliceClient Client
     stdin_open: true
     tty: true

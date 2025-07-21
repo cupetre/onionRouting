@@ -52,7 +52,7 @@ public class UserInput extends Thread {
 
             try {
                 clientNode.sendUserMessage(content, destinationId);
-            } catch (Exception e) { // Catch general exceptions during broadcast (e.g., if PeerManager isn't ready)
+            } catch (Exception e) {
                 Logger.log("Problem sending message: " + e.getMessage(), LogLevel.Error);
             }
         }

@@ -23,15 +23,7 @@ public class Main {
 
     }
 
-
     public static void main(String[] args) {
-        if (args.length < 2) {
-            System.out.println("Usage: java -jar app.jar <node_id> <node_type>");
-            System.out.println("Example: java -jar app.jar AliceClient Client");
-            System.out.println("Example: java -jar app.jar MixNode_Alpha Mix");
-            System.out.println("Example: java -jar app.jar BobDestination Destination");
-            return;
-        }
 
         String nodeId = args[0];
         String nodeType = args[1];
@@ -67,8 +59,7 @@ public class Main {
 
                 if (nodeType.equalsIgnoreCase("client")) {
                     UserInput userInput = new UserInput((ClientNode) currentNode);
-                    userInput.start(); // Start the UserInput thread
-                    // Register shutdown hook for UserInput as well
+                    userInput.start();
                     Runtime.getRuntime().addShutdownHook(new Thread(userInput::shutdown));
                 }
 
