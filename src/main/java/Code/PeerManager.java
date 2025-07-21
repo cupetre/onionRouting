@@ -38,7 +38,7 @@ public abstract class PeerManager {
         for (Peer peer : new HashSet<>(activePeers.values())) {
                 try {
                     peer.sendMessage(new Message("SHUTDOWN", nodeIdentifier));
-                    peer.shutdownPeer();
+
                 } catch (Exception e) {
                     Logger.log("Error gracefully shutting down peer " + peer.getRemoteAddress() + ": " + e.getMessage(), LogLevel.Error);
                 }
