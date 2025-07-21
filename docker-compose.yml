@@ -5,37 +5,49 @@ networks:
     driver: bridge
 
 services:
-  node1:
+  # --- Destination Node (Bob) ---
+  destination-bob:
     build: .
-    container_name: mixnode-1
-    hostname: mixnode-1
-    ports:
-      - "8000:8000"
+    container_name: destination-bob
+    hostname: destination-bob
     networks:
       - my-mixnet-dev-net
-    stdin_open: true
-    tty: true
+    # Command: java -jar app.jar <node_id> <node_type>
+    command: java -jar Peer2Peer-1.0-SNAPSHOT.jar BobDestination Destination
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 
-  node2:
+  # --- Mix Node (Alpha) ---
+  mixnode-alpha:
     build: .
-    container_name: clientnode-2
-    hostname: clientnode-2
-    ports:
-      - "8001:8000"
+    container_name: mixnode-alpha
+    hostname: mixnode-alpha
     networks:
       - my-mixnet-dev-net
-    command: java -jar Peer2Peer-1.0-SNAPSHOT.jar CONNECT_TO mixnode-1 8000
-    stdin_open: true
-    tty: true
+    # Command: java -jar app.jar <node_id> <node_type>
+    command: java -jar Peer2Peer-1.0-SNAPSHOT.jar MixNode_Alpha Mix
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 
-  clientnode-3:
+  # --- Client Node (Alice) ---
+  client-a:
     build: .
-    container_name: clientnode-3
-    hostname: clientnode-3
-    ports:
-      - "8003:8000"
+    container_name: client-a
+    hostname: client-a
     networks:
       - my-mixnet-dev-net
-    command: java -jar Peer2Peer-1.0-SNAPSHOT.jar CONNECT_TO mixnode-1 8000
+    # Command: java -jar app.jar <node_id> <node_type>
+    command: java -jar Peer2Peer-1.0-SNAPSHOT.jar AliceClient Client
     stdin_open: true
     tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"

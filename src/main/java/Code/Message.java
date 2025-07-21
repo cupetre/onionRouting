@@ -4,20 +4,34 @@ import java.io.IOException;
 import java.io.Serializable;
 
 public class Message implements Serializable {
-    private static final long serialVersionUID = 1L;
-    public final String content;
 
-    public Message(String rawMessage) throws IOException {
-        //we check in peer waitformessage if the content is okey
-        //we mainly have this for transparency and strcuture of msg as an object
-        if ( rawMessage == null ) {
-            throw new IOException("Message cannot be null.");
+    private static final long serialVersionUID = 1L;
+
+    public final String content;
+    public final String nextHopID ; // the dest for the msg (reciever)
+
+    public Message(String content, String nextHopID) {
+        if ( content == null || content.trim().isEmpty() ) {
+            throw new IllegalArgumentException("Message can't be null");
         }
-        this.content = rawMessage;
+        if (nextHopID == null || nextHopID.trim().isEmpty() ) {
+            throw new IllegalArgumentException("ID can't be null");
+        }
+
+        this.content = content;
+        this.nextHopID = nextHopID;
     }
 
     @Override
     public String toString() {
+        return "Content : -> " + content + " , Hop : -> " + nextHopID;
+    }
+
+    public String getContent() {
         return content;
+    }
+
+    public String getNextHopID() {
+        return nextHopID;
     }
 }

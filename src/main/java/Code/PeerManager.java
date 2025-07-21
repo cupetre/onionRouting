@@ -5,23 +5,22 @@ import Logs.Logger;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class PeerManager {
-    private final int listeningPort;
-    private final String nodeType;
+public abstract class PeerManager {
+    protected final String nodeIdentifier;
     private final Server server;
+    private final int listeningPort;
     private final ExecutorService peerHandlerExecutor = Executors.newCachedThreadPool();
 
-    private final Set<Peer> activePeers = Collections.synchronizedSet(new HashSet<>());
+    private final Map<String, Peer> activePeers = new ConcurrentHashMap<>();
 
-    public PeerManager(int listeningPort, String nodeType) {
+    public PeerManager(int listeningPort, String nodeIdentifier) {
         this.listeningPort = listeningPort;
-        this.nodeType = nodeType;
+        this.nodeIdentifier = nodeIdentifier;
         this.server = new Server(listeningPort, this);
     }
 
@@ -36,15 +35,13 @@ public class PeerManager {
 
         server.shutdown();
 
-        synchronized (activePeers) {
-            for (Peer peer : new HashSet<>(activePeers)) {
+        for (Peer peer : new HashSet<>(activePeers.values())) {
                 try {
-                    peer.sendMessage(new Message("SHUTDOWN"));
+                    peer.sendMessage(new Message("SHUTDOWN", nodeIdentifier));
                     peer.shutdownPeer();
                 } catch (Exception e) {
                     Logger.log("Error gracefully shutting down peer " + peer.getRemoteAddress() + ": " + e.getMessage(), LogLevel.Error);
                 }
-            }
         }
 
         peerHandlerExecutor.shutdownNow();
@@ -61,57 +58,39 @@ public class PeerManager {
     }
 
     public void handleNewIncomingConnection(Socket socket) throws IOException {
-        Peer peer = new Peer(socket, this);
+        Peer peer = new Peer(socket, this, "INCOMING");
 
         //add to activePeers
         peerHandlerExecutor.submit((Runnable) peer); //activate and allow msgs sharing
     }
 
-    public void connectToPeer(String host, int port) throws IOException {
+    public Peer connectToPeer(String host, int port, String remoteNodeId) throws IOException {
         Logger.log("Attempt to establish connection to " + host + " : " + port,LogLevel.Info);
+
+        Peer existingPeer = activePeers.get(remoteNodeId);
+        if ( existingPeer != null && existingPeer.isConnected() ) {
+            Logger.log("already connected to : " + remoteNodeId,LogLevel.Info);
+            return existingPeer;
+        }
+
         Socket outGoingSocket = new Socket(host,port);
-        Peer peer = new Peer(outGoingSocket, this);
-        peerHandlerExecutor.submit((Runnable) peer);
+
+        Peer peer = new Peer(outGoingSocket, this, remoteNodeId);
+        peerHandlerExecutor.submit(peer);
         Logger.log("Successfull outoing connection to " + host + " : " + port,LogLevel.Success);
+        return peer;
     }
 
-    public void addPeer(Peer peer) {
-        activePeers.add(peer);
+    public void addPeer(String remoteNodeId, Peer peer) {
+        activePeers.put(remoteNodeId, peer);
         Logger.log("Peer successfully added", LogLevel.Info);
     }
 
     // Removes a peer from the active list (called from Peer.run() on disconnect)
-    public void removePeer(Peer peer) {
-        activePeers.remove(peer);
+    public void removePeer(String remoteNodeId) {
+        activePeers.remove(remoteNodeId);
         Logger.log("Peer removed. Total active peers: " + activePeers.size(), LogLevel.Info);
     }
 
-    // Broadcasts a message to all currently active peers
-    public void broadcastMessage(Message message) {
-        if (activePeers.isEmpty()) {
-            Logger.log("No active peers to broadcast to.", LogLevel.Warn);
-            return;
-        }
-        Logger.log("Broadcasting message: \"" + message.toString() + "\"", LogLevel.Info);
-        synchronized (activePeers) { // Synchronize access to the set during iteration
-            for (Peer peer : new HashSet<>(activePeers)) { // Iterate over a copy to avoid ConcurrentModificationException
-                peer.sendMessage(message);
-            }
-        }
-    }
-
-    // --- Placeholder for actual message processing by the node type ---
-    // In a real mixnet, this method would be overridden or branched based on nodeType.
-    public void processReceivedMessage(Message message, Peer sender) {
-        Logger.log("PeerManager received message from " + sender.getRemoteAddress() + ": \"" + message.toString() + "\"", LogLevel.Debug);
-
-        // --- Mixnet Logic Placeholder ---
-        // if (nodeType == "MIXNODE") {
-        //     // Decrypt layer, add to shuffle buffer, then forward later
-        // } else if (nodeType == "DESTINATION") {
-        //     // Final decryption, display message
-        // } else if (nodeType == "CLIENT") {
-        //     // Handle incoming responses if the client expects them
-        // }
-    }
+    public abstract void processReceivedMessage(Message message, Peer sender);
 }

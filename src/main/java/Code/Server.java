@@ -16,7 +16,7 @@ public class Server extends Thread {
     public Server(int port, PeerManager peerManager) {
         this.port = port;
         this.peerManager = peerManager;
-        Thread.currentThread().setName("Network.Server"); // self expl
+        Thread.currentThread().setName("Network.Server" + peerManager.nodeIdentifier); // self expl
     }
 
     @Override
