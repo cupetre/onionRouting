@@ -37,6 +37,9 @@ public abstract class AbstractNode extends PeerManager {
 
         try {
             Peer targetPeer = super.connectToPeer(targetConfig.getHost(), targetConfig.getPort(), targetNodeId);
+
+            Logger.log("this is the target peer : " + targetPeer, LogLevel.Info);
+
             if ( targetPeer != null ) {
                 targetPeer.sendMessage(message);
                 Logger.log("Send message to : " + targetNodeId + ", following " + message.getContent(), LogLevel.Info);

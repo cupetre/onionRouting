@@ -30,7 +30,6 @@ public class Peer implements Runnable {
         setupStreams();
 
         Logger.log("Peer created for OUTGOING connection to " + remoteNodeId + " (" + remoteAddress + ")", LogLevel.Status);
-        peerManager.addPeer(remoteNodeId,this);
     }
 
     public Peer(Socket socket, PeerManager peerManager) throws IOException {
@@ -39,7 +38,7 @@ public class Peer implements Runnable {
         this.remoteAddress = socket.getRemoteSocketAddress().toString();
 
         setupStreams();
-        Logger.log("Peer created for INCOMING connection to " + remoteAddress, LogLevel.Status);
+        Logger.log("Peer created for INCOMING connection from " + remoteAddress, LogLevel.Status);
     }
 
     private void setupStreams() throws IOException {
@@ -68,7 +67,6 @@ public class Peer implements Runnable {
         // dont forget to change message za cont + id path
         try {
             String jsonMessage = gson.toJson(message);
-            writer.write(jsonMessage);
             writer.println(jsonMessage);
             writer.flush(); // clear flush for buffer
             Logger.log("Sent message to " + getRemoteNodeId() + " (" + getRemoteAddress() + ") [HopIndex: " + message.getCurrentHopIndex() + "] Content: \"" + message.getContent() + "\"", LogLevel.Info);
@@ -99,6 +97,8 @@ public class Peer implements Runnable {
                 }
 
                 this.remoteNodeId = handshakeMessage.getFullPath().get(0);
+
+                peerManager.addPeer(this.remoteNodeId, this);
 
                 Logger.log("Peer handler started for the node -> " + remoteNodeId + " as " + remoteAddress, LogLevel.Info);
 

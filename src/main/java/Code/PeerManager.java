@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public abstract class PeerManager {
+
     protected final String nodeIdentifier;
     private final Server server;
     private final int listeningPort;
@@ -59,13 +60,12 @@ public abstract class PeerManager {
 
     public void handleNewIncomingConnection(Socket socket) throws IOException {
         Peer peer = new Peer(socket, this, "INCOMING");
-
         //add to activePeers
         peerHandlerExecutor.submit(peer); //activate and allow msgs sharing
     }
 
     public Peer connectToPeer(String host, int port, String remoteNodeId) throws IOException {
-        Logger.log("Attempt to establish connection to " + host + " : " + port,LogLevel.Info);
+        Logger.log("Attempt to establish connection to " + remoteNodeId + " : " + port,LogLevel.Info);
 
         Peer existingPeer = activePeers.get(remoteNodeId);
         if ( existingPeer != null && existingPeer.isConnected() ) {
@@ -77,12 +77,28 @@ public abstract class PeerManager {
 
         Peer peer = new Peer(outGoingSocket, this, remoteNodeId);
         peerHandlerExecutor.submit(peer);
-        Logger.log("Successfull outoing connection to " + host + " : " + port,LogLevel.Success);
+
+        addPeer(remoteNodeId, peer);
+
+        Logger.log("Successfull outoing connection to " + remoteNodeId + " : " + port,LogLevel.Success);
         return peer;
     }
 
     public void addPeer(String remoteNodeId, Peer peer) {
-        activePeers.put(remoteNodeId, peer);
+        if ( peer.getRemoteNodeId() == null || !peer.getRemoteNodeId().equals(remoteNodeId) ) {
+            Logger.log("Adjusting peer ID from " + remoteNodeId + " to actual " + peer.getRemoteNodeId() + " for storage", LogLevel.Debug);
+            remoteNodeId = peer.getRemoteNodeId();
+        }
+
+        Peer oldPeer = activePeers.put(remoteNodeId, peer);
+
+        if ( oldPeer != null && oldPeer != peer ) {
+            Logger.log("Replaced existing connection for peer " + remoteNodeId + " : " + oldPeer.getRemoteNodeId() + " for storage", LogLevel.Info);
+            oldPeer.shutdownPeer();
+        } else {
+            Logger.log("attempt in removing non existant or same peer from the active peers list " + remoteNodeId, LogLevel.Info);
+        }
+
         Logger.log("Peer successfully added", LogLevel.Info);
     }
 
