@@ -14,7 +14,7 @@ public class DestinationNode extends AbstractNode {
 
     @Override
     public void processReceivedMessage(Message message, Peer sender) {
-        if ( message.getCurrentHopIndex() != message.getFullPath().size() ) {
+        if ( ( message.getCurrentHopIndex() + 1 )!= message.getFullPath().size() ) {
             Logger.log( "dest node did not get the message due to wrong hop index, the index being : " + message.getCurrentHopIndex(), LogLevel.Error);
             return;
         }
