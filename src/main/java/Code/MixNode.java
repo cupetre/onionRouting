@@ -33,10 +33,28 @@ public class MixNode extends AbstractNode {
         //collects the messages and stacks in buffer
         Logger.log("Message received from " + sender.getRemoteAddress() + " : " + message.getContent(), LogLevel.Info);
 
+        if (message.getCurrentHopIndex() >= message.getFullPath().size() ) {
+            Logger.log("invalid hop index, its " + message.getCurrentHopIndex(), LogLevel.Info);
+            return;
+        }
+
+        String intendedRecipientID = message.getFullPath().get(message.getCurrentHopIndex());
+
+        if ( !this.nodeID.equals(intendedRecipientID) ) {
+            Logger.log( " the wrong peer is getting this message and not : " + intendedRecipientID + ", instead its on this : " + this.nodeID, LogLevel.Info);
+            return;
+        }
+
+        Logger.log("msg is recieved where is should be recieved, from : " + sender.getRemoteNodeId(), LogLevel.Info);
+        Logger.log("the message is : " + message.getContent(), LogLevel.Info);
+        Logger.log( "Current hope rn is : " + message.getCurrentHopIndex() + "with path of " + message.getFullPath(), LogLevel.Info);
+
+        message.incrementHopIndex();
+
         try {
             messageBuffer.put(message);
         } catch (InterruptedException e) {
-            Logger.log("problem in adding msg to buffer " + e.getMessage(), LogLevel.Error);
+            Logger.log("problem in adding message to buffer", LogLevel.Info);
             Thread.currentThread().interrupt();
         }
     }
@@ -58,7 +76,11 @@ public class MixNode extends AbstractNode {
         Collections.shuffle(batch);
 
         for (Message message : batch) {
-            sendMessageToNode(message.getNextHopID(), message);
+            String nextHopId = message.getFullPath().get(message.getCurrentHopIndex());
+
+            Logger.log("we are sending the message to : " + nextHopId, LogLevel.Info);
+
+            sendMessageToNode(nextHopId, message);
         }
 
     }

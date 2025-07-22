@@ -1,5 +1,3 @@
-version: '3.8'
-
 networks:
   my-mixnet-dev-net:
     driver: bridge
@@ -12,7 +10,7 @@ services:
     hostname: destination-bob
     networks:
       - my-mixnet-dev-net
-    command: java -jar Peer2Peer-1.0-SNAPSHOT.jar BobDestination Destination
+    command: java -jar app.jar Destination BobDestination
     logging:
       driver: "json-file"
       options:
@@ -26,7 +24,33 @@ services:
     hostname: mixnode-alpha
     networks:
       - my-mixnet-dev-net
-    command: java -jar Peer2Peer-1.0-SNAPSHOT.jar MixNode_Alpha Mix
+    command: java -jar app.jar Mix MixNode_Alpha
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  mixnode-beta:
+    build: .
+    container_name: mixnode-beta
+    hostname: mixnode-beta
+    networks:
+      - my-mixnet-dev-net
+    command: java -jar app.jar Mix MixNode_Beta
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  mixnode-gamma:
+    build: .
+    container_name: mixnode-gamma
+    hostname: mixnode-gamma
+    networks:
+      - my-mixnet-dev-net
+    command: java -jar app.jar Mix MixNode_Gamma
     logging:
       driver: "json-file"
       options:
@@ -40,7 +64,7 @@ services:
     hostname: client-a
     networks:
       - my-mixnet-dev-net
-    command: java -jar Peer2Peer-1.0-SNAPSHOT.jar AliceClient Client
+    command: java -jar app.jar Client AliceClient
     stdin_open: true
     tty: true
     logging:

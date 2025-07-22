@@ -37,7 +37,7 @@ public abstract class PeerManager {
 
         for (Peer peer : new HashSet<>(activePeers.values())) {
                 try {
-                    peer.sendMessage(new Message("SHUTDOWN", nodeIdentifier));
+                    peer.sendMessage(new Message("SHUTDOWN", Arrays.asList(peer.getRemoteNodeId()), 0));
 
                 } catch (Exception e) {
                     Logger.log("Error gracefully shutting down peer " + peer.getRemoteAddress() + ": " + e.getMessage(), LogLevel.Error);
@@ -61,7 +61,7 @@ public abstract class PeerManager {
         Peer peer = new Peer(socket, this, "INCOMING");
 
         //add to activePeers
-        peerHandlerExecutor.submit((Runnable) peer); //activate and allow msgs sharing
+        peerHandlerExecutor.submit(peer); //activate and allow msgs sharing
     }
 
     public Peer connectToPeer(String host, int port, String remoteNodeId) throws IOException {

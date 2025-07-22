@@ -27,6 +27,9 @@ public abstract class AbstractNode extends PeerManager {
 
     protected void sendMessageToNode(String targetNodeId, Message message) {
         NodeConfig targetConfig = knownNodeConfigs.get(targetNodeId);
+
+        Logger.log("this is the target config " + targetConfig, LogLevel.Info);
+
         if ( targetConfig == null ) {
             Logger.log("The node : " + targetNodeId + " can't find the id of the targetted node -> " + targetNodeId, LogLevel.Error);
             return;

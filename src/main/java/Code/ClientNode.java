@@ -3,41 +3,52 @@ package Code;
 import Logs.LogLevel;
 import Logs.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class ClientNode extends AbstractNode {
 
-    private final List<String> defaultMixPath;
-    private final String defaultDestinationID;
-
-    public ClientNode(String nodeID, int listeningPort, Map<String, NodeConfig> knownNodeConfigs, List<String> defaultMixPath, String defaultDestinationID) {
+    public ClientNode(String nodeID, int listeningPort, Map<String, NodeConfig> knownNodeConfigs) {
         super(nodeID, listeningPort, knownNodeConfigs);
 
-        this.defaultMixPath = defaultMixPath;
-        this.defaultDestinationID = defaultDestinationID;
-
-        Logger.log("ClientNode is done. Path flow is : " + defaultMixPath +  "gets sent to -> " + defaultDestinationID, LogLevel.Info);
+        Logger.log("ClientNode is done.", LogLevel.Info);
     }
 
-    public void sendUserMessage(String content, String targetDestinationId) {
+    public void sendUserMessage(String content, String targetDestinationId, List<String> mixNodeIds) {
+        try {
+            List<String> fullPath = new ArrayList<>();
 
-        String firstHopId;
-        if (defaultMixPath != null && !defaultMixPath.isEmpty()) {
-            firstHopId = defaultMixPath.get(0); // first to the mix
-            Logger.log("Preparing to send message via first mix: " + firstHopId, LogLevel.Info);
-        } else {
-            firstHopId = targetDestinationId; // send em directly to destination if no mixes in path
-            Logger.log("Preparing to send message directly to destination: " + firstHopId, LogLevel.Info);
+            if ( mixNodeIds != null && !mixNodeIds.isEmpty() ) {
+                fullPath.addAll(mixNodeIds);
+            }
+
+            fullPath.add(targetDestinationId);
+
+            if ( fullPath.isEmpty() ) {
+                Logger.log ( "the whole msg is empty, can't continue with message sending " , LogLevel.Warn);
+                return;
+            }
+
+            Message message = new Message(content, fullPath, 0);
+
+            String firstHopId = fullPath.get(0);
+
+            Logger.log("First hop is going to be at : " + firstHopId + ", with a full path of -> " + fullPath, LogLevel.Info);
+
+            sendMessageToNode(firstHopId, message);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        Message messageToSend = new Message(content, targetDestinationId);
-
-        sendMessageToNode(firstHopId, messageToSend);
     }
 
     @Override
     public void processReceivedMessage(Message message, Peer sender) {
-        Logger.log( "Received message from " + sender.getRemoteAddress() + " with msg : " + message.getContent(), LogLevel.Info);
+        Logger.log( "Received message from " + sender.getRemoteAddress() + " with msg : " + message.getContent() + " this should not be happening btw ", LogLevel.Info);
+    }
+
+    @Override
+    public void shutdown() {
+        super.shutdown();
     }
 }

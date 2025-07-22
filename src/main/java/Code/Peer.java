@@ -69,27 +69,13 @@ public class Peer implements Runnable {
         try {
             String jsonMessage = gson.toJson(message);
             writer.write(jsonMessage);
-            writer.newLine(); // new chars in line
+            writer.println(jsonMessage);
             writer.flush(); // clear flush for buffer
             Logger.log("Sent message to " + getRemoteNodeId() + " (" + getRemoteAddress() + ") [HopIndex: " + message.getCurrentHopIndex() + "] Content: \"" + message.getContent() + "\"", LogLevel.Info);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             Logger.log("failed to send message to peer" + getRemoteNodeId() + " : " + e.getMessage(), LogLevel.Error);
             connected = false; // quit connection
-        }
-    }
-
-    public void shutdownPeer() {
-        this.connected = false; // prekinuva
-        try {
-            if (socket != null && !socket.isClosed()) {
-                socket.shutdownInput();
-                socket.shutdownOutput();
-                socket.close(); // Close the socket
-                Logger.log("Peer socket closed for " + getRemoteNodeId(), LogLevel.Info);
-            }
-        } catch (IOException e) {
-            Logger.log("Error closing socket for peer " + getRemoteNodeId() + " during shutdown: " + e.getMessage(), LogLevel.Error);
         }
     }
 
@@ -124,6 +110,8 @@ public class Peer implements Runnable {
                 // Catch validation errors from Message constructor during handshake deserialization
                 Logger.log("Validation error in handshake message from " + getRemoteAddress() + ": " + e.getMessage(), LogLevel.Error);
                 return;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         } else {
             Logger.log("Peer handler is started for node: " + remoteNodeId + " as " + remoteAddress, LogLevel.Status);
@@ -167,6 +155,8 @@ public class Peer implements Runnable {
                 // for further processing by the specific node type (Client, Mix, or Destination)
                 peerManager.processReceivedMessage(message, this);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         } finally {
             Logger.log( "Cleaning up connection for peer " + getRemoteNodeId() + " (" + getRemoteAddress() + ")", LogLevel.Info);
             peerManager.removePeer(getRemoteNodeId()); // Remove from PeerManager's list
