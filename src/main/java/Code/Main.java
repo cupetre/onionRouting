@@ -22,6 +22,8 @@ public class Main {
         allNetworkNodes.put("MixNode_Beta", new NodeConfig("MixNode_Beta", "mixnode-beta", 8003));
         allNetworkNodes.put("MixNode_Gamma", new NodeConfig("MixNode_Gamma", "mixnode-gamma", 8004));
         allNetworkNodes.put("BobDestination", new NodeConfig("BobDestination", "destination-bob", 8002));
+        allNetworkNodes.put("BratkoClient", new NodeConfig("BratkoClient", "client-b", 8005));
+        allNetworkNodes.put("DzordzDestination", new NodeConfig("DzordzDestination", "destination-dzordz", 8006));
     }
 
     public static void main(String[] args) {
@@ -33,8 +35,8 @@ public class Main {
             System.exit(1);
         }
 
-        String nodeType = args[0]; // e.g., "client", "mix", "destination"
-        String nodeID = args[1];   // e.g., "AliceClient", "MixNode_Alpha", "BobDestination"
+        String nodeType = args[0];
+        String nodeID = args[1];
 
         NodeConfig thisNodeConfig = allNetworkNodes.get(nodeID);
         if (thisNodeConfig == null) {
@@ -42,7 +44,7 @@ public class Main {
             System.exit(1);
         }
 
-        AbstractNode currentNode = null; // Initial declaration
+        AbstractNode currentNode = null;
         UserInput userInput = null;
 
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -51,9 +53,9 @@ public class Main {
             switch (nodeType.toLowerCase()) {
                 case "client":
                     currentNode = new ClientNode(thisNodeConfig.getId(), thisNodeConfig.getPort(), allNetworkNodes);
-                    // UserInput will get path/destination from console, NOT hardcoded here
+
                     userInput = new UserInput((ClientNode) currentNode);
-                    executor.submit(userInput); // Start UserInput in its own thread
+                    executor.submit(userInput);
                     break;
                 case "mix":
                     currentNode = new MixNode(thisNodeConfig.getId(), thisNodeConfig.getPort(), allNetworkNodes);
@@ -66,14 +68,14 @@ public class Main {
                     System.exit(1);
             }
 
-            final AbstractNode finalCurrentNode = currentNode; // Assign the value to a final variable
+            final AbstractNode finalCurrentNode = currentNode;
 
-            if (finalCurrentNode != null) { // Use the final variable here
+            if (finalCurrentNode != null) {
                 Logger.log("Initializing " + nodeType + " node " + nodeID + " on port " + thisNodeConfig.getPort() + "...", LogLevel.Info);
-                executor.submit(() -> finalCurrentNode.start()); // Use finalCurrentNode in lambda
+                executor.submit(() -> finalCurrentNode.start());
             }
 
-            final UserInput finalUserInput = userInput; // This also needs to be final if reassigned in switch
+            final UserInput finalUserInput = userInput;
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 Logger.log( "Shutdown hook activated. Initiating graceful shutdown...", LogLevel.Info);
                 if (finalUserInput != null) {
@@ -98,21 +100,18 @@ public class Main {
 
             Logger.log("Node '" + nodeID + "' of type '" + nodeType + "' is running. Press Ctrl+C to stop.", LogLevel.Info);
 
-            // Keep the main thread alive indefinitely for all node types.
-            // The shutdown hook will handle termination when Ctrl+C is pressed.
-            // For client, UserInput thread will run; for others, the listening thread runs.
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    Thread.sleep(1000); // Sleep to prevent busy-waiting
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     Logger.log("Main thread interrupted. Exiting loop.", LogLevel.Info);
-                    Thread.currentThread().interrupt(); // Restore interrupt status
+                    Thread.currentThread().interrupt();
                 }
             }
 
         } catch (Exception e) {
             Logger.log("An unhandled exception occurred during node startup: " + e.getMessage(), LogLevel.Error);
-            e.printStackTrace(); // Print full stack trace for unexpected errors
+            e.printStackTrace();
             System.exit(1);
         }
     }

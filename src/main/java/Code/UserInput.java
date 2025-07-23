@@ -31,7 +31,7 @@ public class UserInput extends Thread {
             System.out.println("->");
             String inputLine = scanner.nextLine();
 
-            if ("exit".equalsIgnoreCase(inputLine.trim())) { // Added simple exit command
+            if ("exit".equalsIgnoreCase(inputLine.trim())) {
                 Logger.log("UserInput exiting...", LogLevel.Info);
                 running = false;
                 clientNode.shutdown();

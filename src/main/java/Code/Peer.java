@@ -105,9 +105,8 @@ public class Peer implements Runnable {
                 peerManager.processReceivedMessage(handshakeMessage, this);
             } catch (JsonSyntaxException e) {
                 Logger.log("Incoming peer " + getRemoteAddress() + " sent non-JSON handshake: " + e.getMessage(), LogLevel.Error);
-                return; // Exit due to invalid handshake
+                return;
             } catch (IllegalArgumentException e) {
-                // Catch validation errors from Message constructor during handshake deserialization
                 Logger.log("Validation error in handshake message from " + getRemoteAddress() + ": " + e.getMessage(), LogLevel.Error);
                 return;
             } catch (IOException e) {
@@ -119,48 +118,41 @@ public class Peer implements Runnable {
 
         try {
             while (connected) {
-                String rawMessageJson = waitForMessage(); // Blocks here, waiting for a message
+                String rawMessageJson = waitForMessage();
 
                 if (rawMessageJson == null) {
-                    // This path is taken if waitForMessage() returns null (connection closed/error)
                     Logger.log( "Peer " + getRemoteNodeId() + " disconnected or error reading. Stopping handler.", LogLevel.Warn);
-                    break; // Exit the while loop
+                    break;
                 }
 
                 Message message = null;
                 try {
-                    // --- CRITICAL CHANGE: Deserialize JSON string to Message object ---
+
                     message = gson.fromJson(rawMessageJson, Message.class);
                     if (message == null) {
                         Logger.log( "Received null message after deserialization from " + getRemoteNodeId() + ".", LogLevel.Error);
-                        break; // Malformed/empty JSON
+                        break;
                     }
-                    // Validate deserialized message: basic sanity checks
+
                     if (message.getContent() == null || message.getFullPath() == null || message.getFullPath().isEmpty() || message.getCurrentHopIndex() < 0) {
                         throw new IllegalArgumentException("Deserialized message has missing or invalid fields.");
                     }
 
                 } catch (JsonSyntaxException e) {
-                    // This path is taken if the received string is not valid JSON
                     Logger.log( "Protocol error: Malformed JSON message from " + getRemoteNodeId() + ": " + e.getMessage() + ". Raw: \"" + rawMessageJson + "\"", LogLevel.Error);
-                    break; // Exit the while loop due to protocol violation
+                    break;
                 } catch (IllegalArgumentException e) {
-                    // This catches validation errors from the Message constructor
-                    // or our custom sanity checks after deserialization
                     Logger.log( "Validation error in message from " + getRemoteNodeId() + ": " + e.getMessage() + ". Raw: \"" + rawMessageJson + "\"", LogLevel.Error);
-                    break; // Exit the while loop due to invalid message data
+                    break;
                 }
 
-                // Pass the fully constructed Message object to the PeerManager
-                // for further processing by the specific node type (Client, Mix, or Destination)
                 peerManager.processReceivedMessage(message, this);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
             Logger.log( "Cleaning up connection for peer " + getRemoteNodeId() + " (" + getRemoteAddress() + ")", LogLevel.Info);
-            peerManager.removePeer(getRemoteNodeId()); // Remove from PeerManager's list
-            // Close streams and socket
+            peerManager.removePeer(getRemoteNodeId());
 
             try {
                 if (reader != null) reader.close();
@@ -177,24 +169,23 @@ public class Peer implements Runnable {
         try {
             return reader.readLine();
         } catch (IOException e) {
-            // Log if the peer disconnected while waiting for message
             if (e.getMessage() != null && (e.getMessage().contains("Connection reset") || e.getMessage().contains("Socket closed"))) {
                 Logger.log("Peer " + getRemoteNodeId() + " disconnected unexpectedly during read.", LogLevel.Warn);
-                connected = false; // Mark as disconnected
+                connected = false;
                 return null;
             }
-            throw e; // Re-throw other IOExceptions
+            throw e;
         }
     }
 
     public void shutdownPeer() {
         Logger.log("Shutting down peer " + getRemoteNodeId() + " (" + getRemoteAddress() + ")", LogLevel.Info);
-        connected = false; // Signal the run loop to terminate
+        connected = false;
         try {
             if (socket != null && !socket.isClosed()) {
-                socket.shutdownInput(); // Interrupt blocking readLine()
-                socket.shutdownOutput(); // Cleanly close output
-                socket.close();         // Close the socket
+                socket.shutdownInput();
+                socket.shutdownOutput();
+                socket.close();
             }
         } catch (IOException e) {
             Logger.log("Error during peer shutdown for " + getRemoteNodeId() + ": " + e.getMessage(), LogLevel.Error);

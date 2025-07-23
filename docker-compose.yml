@@ -17,6 +17,19 @@ services:
         max-size: "10m"
         max-file: "5"
 
+  destination-dzordz:
+    build: .
+    container_name: destination-dzordz
+    hostname: destination-dzordz
+    networks:
+      - my-mixnet-dev-net
+    command: java -jar app.jar Destination DzordzDestination
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
   # --- Mix Node (Alpha) ---
   mixnode-alpha:
     build: .
@@ -65,6 +78,21 @@ services:
     networks:
       - my-mixnet-dev-net
     command: java -jar app.jar Client AliceClient
+    stdin_open: true
+    tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  client-b:
+    build: .
+    container_name: client-b
+    hostname: client-b
+    networks:
+      - my-mixnet-dev-net
+    command: java -jar app.jar Client BratkoClient
     stdin_open: true
     tty: true
     logging:
