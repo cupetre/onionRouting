@@ -47,7 +47,7 @@ public class MixNode extends AbstractNode {
 
         Logger.log("msg is recieved where is should be recieved, from : " + sender.getRemoteNodeId(), LogLevel.Info);
         Logger.log("the message is : " + message.getContent(), LogLevel.Info);
-        Logger.log( "Current hope rn is : " + message.getCurrentHopIndex() + "with path of " + message.getFullPath(), LogLevel.Info);
+        Logger.log( "Current hop rn is : " + message.getCurrentHopIndex() + "with path of " + message.getFullPath(), LogLevel.Info);
 
         message.incrementHopIndex();
 

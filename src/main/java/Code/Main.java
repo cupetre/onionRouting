@@ -1,9 +1,11 @@
 package Code;
 
+import CryptoUtils.NodeKeyRegistry;
 import Logs.LogLevel;
 import Logs.Logger;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +31,14 @@ public class Main {
     public static void main(String[] args) {
         Logger.log("Starting Mixnet Nodes...", LogLevel.Info);
 
+        try {
+            NodeKeyRegistry.generateAndRegisterKeys(allNetworkNodes);
+
+            Logger.log("The app has started with key pairs assigned successfully AMEN", LogLevel.Status);
+        } catch (NoSuchAlgorithmException e) {
+            Logger.log("Error in generating and giving keys to the nodes when starting app" + e.getMessage(), LogLevel.Error);
+            System.exit(1);
+        }
         // Command line arguments: <node_type> <node_id>
         if (args.length < 2) {
             System.err.println("Usage: java -jar target/socket-1.0-SNAPSHOT-shaded.jar <node_type> <node_id>");
