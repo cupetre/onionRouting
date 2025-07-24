@@ -134,15 +134,11 @@ public class Peer implements Runnable {
                         break;
                     }
 
-                    if (message.getContent() == null || message.getFullPath() == null || message.getFullPath().isEmpty() || message.getCurrentHopIndex() < 0) {
-                        throw new IllegalArgumentException("Deserialized message has missing or invalid fields.");
-                    }
-
                 } catch (JsonSyntaxException e) {
                     Logger.log( "Protocol error: Malformed JSON message from " + getRemoteNodeId() + ": " + e.getMessage() + ". Raw: \"" + rawMessageJson + "\"", LogLevel.Error);
                     break;
                 } catch (IllegalArgumentException e) {
-                    Logger.log( "Validation error in message from " + getRemoteNodeId() + ": " + e.getMessage() + ". Raw: \"" + rawMessageJson + "\"", LogLevel.Error);
+                    Logger.log( "Validation error in message from " + getRemoteNodeId() + ": " + e.getMessage(), LogLevel.Error);
                     break;
                 }
 

@@ -36,15 +36,6 @@ public abstract class PeerManager {
 
         server.shutdown();
 
-        for (Peer peer : new HashSet<>(activePeers.values())) {
-                try {
-                    peer.sendMessage(new Message("SHUTDOWN", Arrays.asList(peer.getRemoteNodeId()), 0));
-
-                } catch (Exception e) {
-                    Logger.log("Error gracefully shutting down peer " + peer.getRemoteAddress() + ": " + e.getMessage(), LogLevel.Error);
-                }
-        }
-
         peerHandlerExecutor.shutdownNow();
         try {
             if (!peerHandlerExecutor.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS)) {

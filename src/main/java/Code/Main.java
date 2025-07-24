@@ -3,12 +3,10 @@ package Code;
 import CryptoUtils.NodeKeyRegistry;
 import Logs.LogLevel;
 import Logs.Logger;
+import NodesConstruct.*;
 
-import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,11 +19,11 @@ public class Main {
     static {
         allNetworkNodes.put("AliceClient", new NodeConfig("AliceClient", "client-a", 8000));
         allNetworkNodes.put("MixNode_Alpha", new NodeConfig("MixNode_Alpha", "mixnode-alpha", 8001));
-        allNetworkNodes.put("MixNode_Beta", new NodeConfig("MixNode_Beta", "mixnode-beta", 8003));
-        allNetworkNodes.put("MixNode_Gamma", new NodeConfig("MixNode_Gamma", "mixnode-gamma", 8004));
+        //allNetworkNodes.put("MixNode_Beta", new NodeConfig("MixNode_Beta", "mixnode-beta", 8003));
+        //allNetworkNodes.put("MixNode_Gamma", new NodeConfig("MixNode_Gamma", "mixnode-gamma", 8004));
         allNetworkNodes.put("BobDestination", new NodeConfig("BobDestination", "destination-bob", 8002));
-        allNetworkNodes.put("BratkoClient", new NodeConfig("BratkoClient", "client-b", 8005));
-        allNetworkNodes.put("DzordzDestination", new NodeConfig("DzordzDestination", "destination-dzordz", 8006));
+        // allNetworkNodes.put("BratkoClient", new NodeConfig("BratkoClient", "client-b", 8005));
+        //allNetworkNodes.put("DzordzDestination", new NodeConfig("DzordzDestination", "destination-dzordz", 8006));
     }
 
     public static void main(String[] args) {

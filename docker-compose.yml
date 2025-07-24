@@ -17,19 +17,6 @@ services:
         max-size: "10m"
         max-file: "5"
 
-  destination-dzordz:
-    build: .
-    container_name: destination-dzordz
-    hostname: destination-dzordz
-    networks:
-      - my-mixnet-dev-net
-    command: java -jar app.jar Destination DzordzDestination
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
-
   # --- Mix Node (Alpha) ---
   mixnode-alpha:
     build: .
@@ -44,32 +31,6 @@ services:
         max-size: "10m"
         max-file: "5"
 
-  mixnode-beta:
-    build: .
-    container_name: mixnode-beta
-    hostname: mixnode-beta
-    networks:
-      - my-mixnet-dev-net
-    command: java -jar app.jar Mix MixNode_Beta
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
-
-  mixnode-gamma:
-    build: .
-    container_name: mixnode-gamma
-    hostname: mixnode-gamma
-    networks:
-      - my-mixnet-dev-net
-    command: java -jar app.jar Mix MixNode_Gamma
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
-
   # --- Client Node (Alice) ---
   client-a:
     build: .
@@ -78,21 +39,6 @@ services:
     networks:
       - my-mixnet-dev-net
     command: java -jar app.jar Client AliceClient
-    stdin_open: true
-    tty: true
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
-
-  client-b:
-    build: .
-    container_name: client-b
-    hostname: client-b
-    networks:
-      - my-mixnet-dev-net
-    command: java -jar app.jar Client BratkoClient
     stdin_open: true
     tty: true
     logging:
