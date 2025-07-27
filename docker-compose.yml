@@ -5,18 +5,15 @@ networks:
 services:
 
   key-generator:
-    build: . # Uses your existing Dockerfile to build the image
+    build: .
     container_name: mixnet-key-generator
     hostname: key-generator
     networks:
-      - my-mixnet-dev-net # It needs to be on the network to access others if they needed to
-    command: java -jar app.jar GenerateKeys # Custom command to trigger key generation
+      - my-mixnet-dev-net
+    command: java -jar app.jar GenerateKeys
     volumes:
-      # Mount a volume to save keys to your host machine's 'keys' directory.
-      # This directory will then be mounted as read-only for other containers.
       - ./keys:/app/keys
 
-  # --- Destination Node (Bob) ---
   destination-bob:
     build: .
     container_name: destination-bob
@@ -51,7 +48,6 @@ services:
         max-size: "10m"
         max-file: "5"
 
-  # --- Mix Node (Alpha) ---
   mixnode-alpha:
     build: .
     container_name: mixnode-alpha
@@ -103,7 +99,6 @@ services:
         max-size: "10m"
         max-file: "5"
 
-  # --- Client Node (Alice) ---
   client-a:
     build: .
     container_name: client-a

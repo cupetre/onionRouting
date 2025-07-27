@@ -60,7 +60,6 @@ public class DestinationNode extends AbstractNode {
 
         SecretKey aesKeyForThisLayer;
         try {
-            // Decrypt the AES key for this layer using the DestinationNode's RSA private key
             byte[] decryptedAesKeyBytes = RsaEncryptionUtil.decrypt(encryptedAesKeyBytes, myPrivateKey);
             aesKeyForThisLayer = new SecretKeySpec(decryptedAesKeyBytes, 0, decryptedAesKeyBytes.length, "AES");
             Logger.log("DestinationNode " + this.nodeID + ": AES key decrypted successfully.", LogLevel.Debug);
@@ -80,7 +79,6 @@ public class DestinationNode extends AbstractNode {
 
         byte[] decryptedOriginalMessageBytes;
         try {
-            // Decrypt the payload with the AES key - this should be the original message bytes
             AesEncryptionUtil.EncryptedData encryptedData = new AesEncryptionUtil.EncryptedData(encryptedPayloadBytes, ivBytes);
             decryptedOriginalMessageBytes = AesEncryptionUtil.decrypt(encryptedData, aesKeyForThisLayer);
             Logger.log("DestinationNode " + this.nodeID + ": Final AES payload decrypted successfully. Bytes length: " + decryptedOriginalMessageBytes.length, LogLevel.Debug);
@@ -89,11 +87,9 @@ public class DestinationNode extends AbstractNode {
             return;
         }
 
-        // --- 3. Extract and Print the Original Message ---
         try {
-            String originalMessage = new String(decryptedOriginalMessageBytes, "UTF-8"); // Convert bytes to String
+            String originalMessage = new String(decryptedOriginalMessageBytes, "UTF-8");
 
-            // Set the 'content' field in the Message object (NOW it's meaningful)
             message.setContent(originalMessage);
 
             Logger.log("-------------------------------------------------------", LogLevel.Success);
@@ -101,8 +97,6 @@ public class DestinationNode extends AbstractNode {
             Logger.log("-------------------------------------------------------", LogLevel.Success);
             Logger.log("'" + originalMessage + "'", LogLevel.Success);
             Logger.log("-------------------------------------------------------", LogLevel.Info);
-
-            // You can now process the original message, e.g., display it to a user interface, etc.
 
         } catch (UnsupportedEncodingException e) {
             Logger.log("DestinationNode " + nodeID + ": Failed to convert decrypted bytes to UTF-8 string. Error: " + e.getMessage(), LogLevel.Error);

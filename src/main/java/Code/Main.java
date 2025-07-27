@@ -36,25 +36,22 @@ public class Main {
             System.exit(1);
         }
 
-        String command = args[0]; // First arg is now the command
+        String command = args[0];
 
         if ("GenerateKeys".equalsIgnoreCase(command)) {
             try {
-                // NodeKeyRegistry needs the NodeConfig map for IDs
                 NodeKeyRegistry.generateAndRegisterKeys(allNetworkNodes);
-                // Save keys to the mounted volume
                 for (NodeConfig nc : allNetworkNodes.values()) {
                     NodeKeyRegistry.saveKeysToFile(nc.getId(), KEYS_DIR);
                 }
                 Logger.log("Key generation and saving complete for all nodes. Exiting key-generator service.", LogLevel.Status);
-                System.exit(0); // Exit after generating keys
+                System.exit(0);
             } catch (Exception e) {
                 Logger.log("Error during key generation: " + e.getMessage(), LogLevel.Error);
                 System.exit(1);
             }
         }
 
-        // Command line arguments: <node_type> <node_id>
         if (args.length < 2) {
             System.err.println("Error: Missing node_id for command '" + command + "'.");
             System.exit(1);
