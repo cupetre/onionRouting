@@ -15,31 +15,52 @@ import java.util.concurrent.TimeUnit;
 public class Main {
 
     private static Map<String, NodeConfig> allNetworkNodes = new HashMap<>();
+    private static final String KEYS_DIR = "/app/keys"; // Path inside the Docker container
 
     static {
         allNetworkNodes.put("AliceClient", new NodeConfig("AliceClient", "client-a", 8000));
         allNetworkNodes.put("MixNode_Alpha", new NodeConfig("MixNode_Alpha", "mixnode-alpha", 8001));
         allNetworkNodes.put("BobDestination", new NodeConfig("BobDestination", "destination-bob", 8002));
+        allNetworkNodes.put("MixNode_Beta", new NodeConfig("MixNode_Beta", "mixnode-beta", 8003));
+        allNetworkNodes.put("MixNode_Gamma", new NodeConfig("MixNode_Gamma", "mixnode-gamma", 8004));
+        allNetworkNodes.put("MaliceClient", new NodeConfig("MaliceClient", "client-ma", 8005));
+        allNetworkNodes.put("RobDestination", new NodeConfig("RobDestination", "destination-rob", 8006));
     }
 
     public static void main(String[] args) {
         Logger.log("Starting Mixnet Nodes...", LogLevel.Info);
 
-        try {
-            NodeKeyRegistry.generateAndRegisterKeys(allNetworkNodes);
-
-            Logger.log("The app has started with key pairs assigned successfully AMEN", LogLevel.Status);
-        } catch (NoSuchAlgorithmException e) {
-            Logger.log("Error in generating and giving keys to the nodes when starting app" + e.getMessage(), LogLevel.Error);
+        if (args.length < 1) { // Changed to 1, as 'GenerateKeys' has no node_id
+            System.err.println("Usage: java -jar target/Peer2Peer-1.0-SNAPSHOT.jar <command> [node_id]");
+            System.err.println("Commands: GenerateKeys | Client <node_id> | Mix <node_id> | Destination <node_id>");
             System.exit(1);
         }
+
+        String command = args[0]; // First arg is now the command
+
+        if ("GenerateKeys".equalsIgnoreCase(command)) {
+            try {
+                // NodeKeyRegistry needs the NodeConfig map for IDs
+                NodeKeyRegistry.generateAndRegisterKeys(allNetworkNodes);
+                // Save keys to the mounted volume
+                for (NodeConfig nc : allNetworkNodes.values()) {
+                    NodeKeyRegistry.saveKeysToFile(nc.getId(), KEYS_DIR);
+                }
+                Logger.log("Key generation and saving complete for all nodes. Exiting key-generator service.", LogLevel.Status);
+                System.exit(0); // Exit after generating keys
+            } catch (Exception e) {
+                Logger.log("Error during key generation: " + e.getMessage(), LogLevel.Error);
+                System.exit(1);
+            }
+        }
+
         // Command line arguments: <node_type> <node_id>
         if (args.length < 2) {
-            System.err.println("Usage: java -jar target/socket-1.0-SNAPSHOT-shaded.jar <node_type> <node_id>");
+            System.err.println("Error: Missing node_id for command '" + command + "'.");
             System.exit(1);
         }
 
-        String nodeType = args[0];
+        String nodeType = command;
         String nodeID = args[1];
 
         NodeConfig thisNodeConfig = allNetworkNodes.get(nodeID);
@@ -50,10 +71,12 @@ public class Main {
 
         AbstractNode currentNode = null;
         UserInput userInput = null;
-
         ExecutorService executor = Executors.newCachedThreadPool();
 
         try {
+            NodeKeyRegistry.loadKeysFromFile(nodeID, KEYS_DIR);
+            Logger.log("Successfully loaded keys for " + nodeID, LogLevel.Info);
+
             switch (nodeType.toLowerCase()) {
                 case "client":
                     currentNode = new ClientNode(thisNodeConfig.getId(), thisNodeConfig.getPort(), allNetworkNodes);

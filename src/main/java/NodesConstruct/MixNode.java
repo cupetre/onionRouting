@@ -14,10 +14,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class MixNode extends AbstractNode {
@@ -72,23 +69,15 @@ public class MixNode extends AbstractNode {
             return;
         }
 
-        Logger.log("aj da vidime encryptedAesKeyBytes i privKey dali se okej -> " + privateKey + encryptedAesKeyBytes , LogLevel.Info);
-
-
         SecretKey aesKeyForThisLayer;
 
         try {
             byte[] decryptedAesKeyBytes = RsaEncryptionUtil.decrypt(encryptedAesKeyBytes, privateKey);
-
-            Logger.log("or it didnt get the decrypted bytes message" + decryptedAesKeyBytes , LogLevel.Info);
-
             aesKeyForThisLayer = new SecretKeySpec(decryptedAesKeyBytes, 0, decryptedAesKeyBytes.length, "AES");
-
-            Logger.log("or its the secretkeyspec something " + aesKeyForThisLayer  , LogLevel.Info);
-
-            Logger.log("the mixnode : " + this.nodeID + "has decrypted the rsa good", LogLevel.Info);
+            Logger.log("the mixnode : " + this.nodeID + " has decrypted the rsa good", LogLevel.Info);
         } catch (Exception e) {
             Logger.log("Problem with decryption of mixnode: " + this.nodeID, LogLevel.Error);
+            return;
         }
 
         byte[] encryptedPayloadBytes = message.getEncryptedPayload();
@@ -99,25 +88,28 @@ public class MixNode extends AbstractNode {
             return;
         }
 
-        byte[] decryptedPayloadBytes;
+        Logger.log("this is the message still encrypted " + encryptedPayloadBytes, LogLevel.Info);
 
+        byte[] decryptedPayloadBytes;
 
         try {
             AesEncryptionUtil.EncryptedData encryptedData = new AesEncryptionUtil.EncryptedData(encryptedPayloadBytes, encryptedIvBytes);
             decryptedPayloadBytes = AesEncryptionUtil.decrypt(encryptedData, aesKeyForThisLayer);
             Logger.log("The mixnode : " + this.nodeID + "has decrypted the aes good", LogLevel.Info);
+            Logger.log("this is the message decrypted and send to dest bob" + decryptedPayloadBytes, LogLevel.Info);
+            Logger.log("this is the message decrypted and send to dest bob" + Arrays.toString(decryptedPayloadBytes), LogLevel.Info);
         } catch (Exception e) {
             Logger.log("the mixnode : " + this.nodeID + "did not decrypt the aes good " , LogLevel.Info);
             return;
         }
 
-        // the gson stuff , ne gi ni razb pola
         ClientMessageBuilder.NextHopPayload nextHopPayload;
 
         try {
             String decryptedJsonString = new String(decryptedPayloadBytes, "UTF-8");
             nextHopPayload = new GsonBuilder().create().fromJson(decryptedJsonString, ClientMessageBuilder.NextHopPayload.class);
 
+            Logger.log("decrypted msg after UTF-8 for byte change + iv and key" + decryptedJsonString, LogLevel.Info);
             if (nextHopPayload == null) {
                 Logger.log("MixNode " + this.nodeID + ": Deserialized NextHopPayload is null. Malformed JSON?", LogLevel.Error);
                 return;
@@ -130,18 +122,17 @@ public class MixNode extends AbstractNode {
                 Logger.log("MixNode " + this.nodeID + ": NextHopPayload contains null fields. Malformed message structure.", LogLevel.Error);
                 return;
             }
-            Logger.log("MixNode " + this.nodeID + ": NextHopPayload parsed. Next hop ID: " + nextHopPayload.getNextHopId(), LogLevel.Debug);
+            Logger.log("MixNode " + this.nodeID + ": NextHopPayload parsed. Next hop ID: " + nextHopPayload.getNextHopId() + "with message as : " + nextHopPayload.getNextEncryptedPayload(), LogLevel.Debug);
 
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
 
         Logger.log("msg is recieved where is should be recieved, from : " + sender.getRemoteNodeId(), LogLevel.Info);
-        Logger.log("the message is : " + message.getContent(), LogLevel.Info);
         Logger.log( "Current hop rn is : " + message.getCurrentHopIndex() + "with path of " + message.getFullPath(), LogLevel.Info);
 
-        message.setEncryptedPayload(nextHopPayload.getNextEncryptedPayload()); // These setters expect Base64 String
-        message.setIv(nextHopPayload.getNextIv());                               // from NextHopPayload getters
+        message.setEncryptedPayload(nextHopPayload.getNextEncryptedPayload());
+        message.setIv(nextHopPayload.getNextIv());
         message.setEncryptedSymmetricKeyForThisHop(nextHopPayload.getNextEncryptedSymmetricKey());
 
         message.incrementHopIndex();

@@ -3,6 +3,19 @@ networks:
     driver: bridge
 
 services:
+
+  key-generator:
+    build: . # Uses your existing Dockerfile to build the image
+    container_name: mixnet-key-generator
+    hostname: key-generator
+    networks:
+      - my-mixnet-dev-net # It needs to be on the network to access others if they needed to
+    command: java -jar app.jar GenerateKeys # Custom command to trigger key generation
+    volumes:
+      # Mount a volume to save keys to your host machine's 'keys' directory.
+      # This directory will then be mounted as read-only for other containers.
+      - ./keys:/app/keys
+
   # --- Destination Node (Bob) ---
   destination-bob:
     build: .
@@ -11,6 +24,27 @@ services:
     networks:
       - my-mixnet-dev-net
     command: java -jar app.jar Destination BobDestination
+    volumes:
+      - ./keys:/app/keys:ro
+    depends_on:
+          - key-generator
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  destination-rob:
+    build: .
+    container_name: destination-rob
+    hostname: destination-rob
+    networks:
+      - my-mixnet-dev-net
+    command: java -jar app.jar Destination RobDestination
+    volumes:
+      - ./keys:/app/keys:ro
+    depends_on:
+      - key-generator
     logging:
       driver: "json-file"
       options:
@@ -25,6 +59,44 @@ services:
     networks:
       - my-mixnet-dev-net
     command: java -jar app.jar Mix MixNode_Alpha
+    volumes:
+      - ./keys:/app/keys:ro
+    depends_on:
+      - key-generator
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  mixnode-beta:
+    build: .
+    container_name: mixnode-beta
+    hostname: mixnode-beta
+    networks:
+      - my-mixnet-dev-net
+    command: java -jar app.jar Mix MixNode_Beta
+    volumes:
+      - ./keys:/app/keys:ro
+    depends_on:
+      - key-generator
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  mixnode-gamma:
+    build: .
+    container_name: mixnode-gamma
+    hostname: mixnode-gamma
+    networks:
+      - my-mixnet-dev-net
+    command: java -jar app.jar Mix MixNode_Gamma
+    volumes:
+      - ./keys:/app/keys:ro
+    depends_on:
+      - key-generator
     logging:
       driver: "json-file"
       options:
@@ -39,6 +111,29 @@ services:
     networks:
       - my-mixnet-dev-net
     command: java -jar app.jar Client AliceClient
+    volumes:
+      - ./keys:/app/keys:ro
+    depends_on:
+      - key-generator
+    stdin_open: true
+    tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  client-ma:
+    build: .
+    container_name: client-ma
+    hostname: client-ma
+    networks:
+      - my-mixnet-dev-net
+    command: java -jar app.jar Client MaliceClient
+    volumes:
+      - ./keys:/app/keys:ro
+    depends_on:
+      - key-generator
     stdin_open: true
     tty: true
     logging:

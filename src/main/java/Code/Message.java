@@ -61,6 +61,11 @@ public class Message implements Serializable {
     public byte[] getEncryptedPayload() {
         return Base64.getDecoder().decode(encryptedPayloadBase64);
     }
+
+    public byte[] getEncryptedPyloadWithUTF() {
+        return encryptedPayloadBase64.getBytes();
+    }
+
     public void setEncryptedPayload(byte[] encryptedPayload) {
         this.encryptedPayloadBase64 = Base64.getEncoder().encodeToString(encryptedPayload);
     }

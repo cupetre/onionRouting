@@ -12,6 +12,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.security.PrivateKey;
+import java.util.Arrays;
 import java.util.Map;
 
 public class DestinationNode extends AbstractNode {
@@ -53,6 +54,10 @@ public class DestinationNode extends AbstractNode {
             return;
         }
 
+        byte[] encryptedMessageForTesting = message.getEncryptedPyloadWithUTF();
+        Logger.log("encrypted payloard after being sent from mixnode " + encryptedMessageForTesting, LogLevel.Info);
+        Logger.log("encrypted payloard after being sent from mixnode " + Arrays.toString(encryptedMessageForTesting), LogLevel.Info);
+
         SecretKey aesKeyForThisLayer;
         try {
             // Decrypt the AES key for this layer using the DestinationNode's RSA private key
@@ -70,6 +75,8 @@ public class DestinationNode extends AbstractNode {
             Logger.log("DestinationNode " + this.nodeID + ": Encrypted payload or IV is null. Malformed final message.", LogLevel.Error);
             return;
         }
+
+        Logger.log("this is the message before beging decrypted " + encryptedPayloadBytes, LogLevel.Info);
 
         byte[] decryptedOriginalMessageBytes;
         try {
