@@ -72,10 +72,10 @@ public class MixNode extends AbstractNode {
             return;
         }
 
+        Logger.log("aj da vidime encryptedAesKeyBytes i privKey dali se okej -> " + privateKey + encryptedAesKeyBytes , LogLevel.Info);
+
 
         SecretKey aesKeyForThisLayer;
-
-        Logger.log("aj da vidime encryptedAesKeyBytes i privKey dali se okej -> " + privateKey + encryptedAesKeyBytes , LogLevel.Info);
 
         try {
             byte[] decryptedAesKeyBytes = RsaEncryptionUtil.decrypt(encryptedAesKeyBytes, privateKey);
@@ -89,7 +89,6 @@ public class MixNode extends AbstractNode {
             Logger.log("the mixnode : " + this.nodeID + "has decrypted the rsa good", LogLevel.Info);
         } catch (Exception e) {
             Logger.log("Problem with decryption of mixnode: " + this.nodeID, LogLevel.Error);
-            return;
         }
 
         byte[] encryptedPayloadBytes = message.getEncryptedPayload();
@@ -101,6 +100,7 @@ public class MixNode extends AbstractNode {
         }
 
         byte[] decryptedPayloadBytes;
+
 
         try {
             AesEncryptionUtil.EncryptedData encryptedData = new AesEncryptionUtil.EncryptedData(encryptedPayloadBytes, encryptedIvBytes);

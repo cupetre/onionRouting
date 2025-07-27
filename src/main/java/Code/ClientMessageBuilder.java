@@ -27,12 +27,8 @@ public class ClientMessageBuilder {
         //import the list or make the same one just reversed
         List<String> encryptionPath = new ArrayList<>(fullPath);
 
-        Logger.log("fullpath not reversed is like this : " + encryptionPath);
-
         //najlesno tbh
         Collections.reverse(encryptionPath);
-
-        Logger.log("fullpath now reversed is like this : " + encryptionPath);
 
         //cryptography 101
         byte[] currentEncryptedPayload = originalMessageBytes;
@@ -52,16 +48,12 @@ public class ClientMessageBuilder {
             SecretKey aesKeyForThisLayer = AesEncryptionUtil.generateAesKey();
             byte[] plainTextForAes;
 
-            // Determine the plaintext for the current AES layer
             if (i == 0) {
-                // Innermost layer (for the destination node) - plaintext is the original message
-                plainTextForAes = currentEncryptedPayload; // which is originalMessageBytes
+                plainTextForAes = currentEncryptedPayload;
                 Logger.log("Building innermost layer for Destination: " + currentNodeId, LogLevel.Debug);
             } else {
-                // Intermediate layer for a mix node - plaintext is the NextHopPayload (JSON)
-                String nextHopId = encryptionPath.get(i - 1); // ID of the node processed in the *previous* iteration
+                String nextHopId = encryptionPath.get(i - 1);
 
-                // CRITICAL CHECK: Ensure previous layer's data is present for NextHopPayload
                 if (currentEncryptedPayload == null || currentIv == null || currentEncryptedSymmetricKey == null) {
                     Logger.log("Critical: Missing data from previous encryption layer (payload, IV, or symmetric key). Cannot build NextHopPayload for " + currentNodeId, LogLevel.Warn);
                     throw new IllegalStateException("Missing encrypted data from previous hop for node: " + currentNodeId);
@@ -74,20 +66,17 @@ public class ClientMessageBuilder {
                         nextHopId
                 );
 
-                // Convert NextHopPayload object to JSON string, then to bytes for AES encryption
                 String jsonPayload = new GsonBuilder().disableHtmlEscaping().create().toJson(nextHopPayload);
                 Logger.log("JSON plaintext for AES for " + currentNodeId + ": " + jsonPayload, LogLevel.Debug);
                 plainTextForAes = jsonPayload.getBytes("UTF-8");
             }
 
-            // Perform AES encryption for the current layer
             AesEncryptionUtil.EncryptedData encryptedDataForThisLayer =
                     AesEncryptionUtil.encrypt(plainTextForAes, aesKeyForThisLayer);
 
             currentEncryptedPayload = encryptedDataForThisLayer.getCiphertext();
             currentIv = encryptedDataForThisLayer.getIv();
 
-            // Encrypt the AES key for this layer using the current node's RSA public key
             currentEncryptedSymmetricKey =
                     RsaEncryptionUtil.encrypt(aesKeyForThisLayer.getEncoded(), currentNodePublicKey);
 
@@ -100,7 +89,7 @@ public class ClientMessageBuilder {
 
         Message finalMessage = new Message(fullPath, encodedPayload, encodedIv, encodedSymmetricKey);
 
-        // currentHopIndex is already 0 in the Message constructor
+        // currentHopIndex is already 0 in the message constructor
         Logger.log("Client: Built onion message" + finalMessage, LogLevel.Info);
         return finalMessage;
     }
@@ -111,7 +100,6 @@ public class ClientMessageBuilder {
         private String nextEncryptedSymmetricKeyBase64;
         private String nextHopId;
 
-        // Constructor for sending
         public NextHopPayload(String nextEncryptedPayloadBase64, String nextIvBase64,
                               String nextEncryptedSymmetricKeyBase64, String nextHopId) {
             this.nextEncryptedPayloadBase64 = nextEncryptedPayloadBase64;

@@ -33,6 +33,8 @@ public class NodeKeyRegistry {
 
             allNodeKeyPairs.put(nodeId, keyPair);
             Logger.log("Successfully generated key pair for : " + nodeId, LogLevel.Success);
+
+            
         }
         Logger.log("Finished generating RSA key pairs for the nodes and assigned", LogLevel.Status);
     }
