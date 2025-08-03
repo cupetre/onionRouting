@@ -51,8 +51,7 @@ public abstract class PeerManager {
 
     public void handleNewIncomingConnection(Socket socket) throws IOException {
         Peer peer = new Peer(socket, this, "INCOMING");
-        //add to activePeers
-        peerHandlerExecutor.submit(peer); //activate and allow msgs sharing
+        peerHandlerExecutor.submit(peer);
     }
 
     public Peer connectToPeer(String host, int port, String remoteNodeId) throws IOException {

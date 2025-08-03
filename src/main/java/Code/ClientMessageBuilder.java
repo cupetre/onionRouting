@@ -27,7 +27,6 @@ public class ClientMessageBuilder {
         //import the list or make the same one just reversed
         List<String> encryptionPath = new ArrayList<>(fullPath);
 
-        //najlesno tbh
         Collections.reverse(encryptionPath);
 
         //cryptography 101
@@ -89,7 +88,6 @@ public class ClientMessageBuilder {
 
         Message finalMessage = new Message(fullPath, encodedPayload, encodedIv, encodedSymmetricKey);
 
-        // currentHopIndex is already 0 in the message constructor
         Logger.log("Client: Built onion message" + finalMessage, LogLevel.Info);
         return finalMessage;
     }

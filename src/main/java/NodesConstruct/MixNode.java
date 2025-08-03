@@ -114,7 +114,6 @@ public class MixNode extends AbstractNode {
                 Logger.log("MixNode " + this.nodeID + ": Deserialized NextHopPayload is null. Malformed JSON?", LogLevel.Error);
                 return;
             }
-            // Basic validation of nextHopPayload's content before using
             if (nextHopPayload.getNextEncryptedPayload() == null ||
                     nextHopPayload.getNextIv() == null ||
                     nextHopPayload.getNextEncryptedSymmetricKey() == null ||

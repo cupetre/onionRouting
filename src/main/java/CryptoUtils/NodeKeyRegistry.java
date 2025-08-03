@@ -104,7 +104,7 @@ public class NodeKeyRegistry {
             throw new IOException("Public keys file not found.");
         }
 
-        // Load THIS node's private key
+        // now we load THIS(THE ONE thats usin it rn for enncryptin) node's private key
         Path privateKeyPath = dirPath.resolve(nodeId + "_private.key");
         if (Files.exists(privateKeyPath)) {
             byte[] privateKeyBytes = Files.readAllBytes(privateKeyPath);

@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class Main {
 
     private static Map<String, NodeConfig> allNetworkNodes = new HashMap<>();
-    private static final String KEYS_DIR = "/app/keys"; // Path inside the Docker container
+    private static final String KEYS_DIR = "/app/keys";
 
     static {
         allNetworkNodes.put("AliceClient", new NodeConfig("AliceClient", "client-a", 8000));
@@ -30,9 +30,9 @@ public class Main {
     public static void main(String[] args) {
         Logger.log("Starting Mixnet Nodes...", LogLevel.Info);
 
-        if (args.length < 1) { // Changed to 1, as 'GenerateKeys' has no node_id
+        if (args.length < 1) {
             System.err.println("Usage: java -jar target/Peer2Peer-1.0-SNAPSHOT.jar <command> [node_id]");
-            System.err.println("Commands: GenerateKeys | Client <node_id> | Mix <node_id> | Destination <node_id>");
+            System.err.println("Commands: GenerateKeys | Client <node_id> | Mix <node_ids> | Destination <node_id>");
             System.exit(1);
         }
 

@@ -94,9 +94,7 @@ public class DestinationNode extends AbstractNode {
 
             Logger.log("-------------------------------------------------------", LogLevel.Success);
             Logger.log("DESTINATION NODE (" + nodeID + ") RECEIVED AND DECRYPTED ORIGINAL MESSAGE:", LogLevel.Success);
-            Logger.log("-------------------------------------------------------", LogLevel.Success);
             Logger.log("'" + originalMessage + "'", LogLevel.Success);
-            Logger.log("-------------------------------------------------------", LogLevel.Info);
 
         } catch (UnsupportedEncodingException e) {
             Logger.log("DestinationNode " + nodeID + ": Failed to convert decrypted bytes to UTF-8 string. Error: " + e.getMessage(), LogLevel.Error);
