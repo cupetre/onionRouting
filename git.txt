@@ -1,0 +1,8 @@
+First unsuccessful attempts of socket connection and managing Threads. In this git repo there are some projects i tried running on a low level scheme to try to organize and grasp the concept of socket activation with examples from Tutorials.
+
+https://github.com/cupetre/p2p-network
+
+And this is the main and original one.
+
+
+
